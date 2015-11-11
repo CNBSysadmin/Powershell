@@ -1,0 +1,25 @@
+Start-Transcript -Path C:\users\public\desktop\WindowsUpdateCacheCleanup.log -Verbose -Force -ErrorAction silentlycontinue
+$colitems = (get-childitem C:\windows\SoftwareDistribution  -recurse | Measure-Object -property length -sum)
+
+$colitemssumMB = "{0:N2}" -f ($colItems.sum / 1MB) + " MB"
+    
+"SoftwareDistribution folder size is " + $colitemssumMB
+
+if($colitems.sum -gt 500000000){
+    
+    "This size is indicative of obsolete cached windows update content. Cleanup starting"
+    
+    get-service wuauserv | stop-service 
+    
+    get-childitem C:\windows\SoftwareDistribution | Remove-Item -recurse -Force 
+    
+    get-service wuauserv | start-service
+
+    $colitems = (get-childitem C:\windows\SoftwareDistribution  -recurse | Measure-Object -property length -sum)
+
+    $colitemssumMB = "{0:N2}" -f ($colItems.sum / 1MB) + " MB"
+    
+    "SoftwareDistribution folder size is now " + $colitemssumMB
+}
+
+Stop-Transcript -ErrorAction silentlycontinue
